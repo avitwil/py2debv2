@@ -1,137 +1,121 @@
 
+# Py2Debv2
 
-# Py2DebV2
-
-![Py2DebV2 Logo](https://via.placeholder.com/600x150?text=Py2DebV2)
-
-**Py2DebV2** is a Python utility designed to automatically create Debian (`.deb`) packages from Python scripts. It detects Python dependencies, optionally compiles standalone binaries using Nuitka, and can generate setup scripts, tar.gz archives, and man pages for easy distribution.
+**Py2Debv2** by **Avi Twil** from **Twil Industries**  
+A powerful Python packaging tool that converts Python scripts into Debian packages (`.deb`) or standalone executables with full dependency management.
 
 ---
 
-## Features
+## Overview
 
-* Convert Python scripts into Debian `.deb` packages.
-* Automatically detect Python dependencies and map them to Debian packages.
-* Optionally compile scripts into standalone binaries using Nuitka.
-* Generate `install.sh` setup scripts.
-* Create `tar.gz` archives containing the DEB and setup script.
-* Include man pages for installed commands.
-* Supports automatic inclusion of dependencies inside standalone binaries.
+**Py2Debv2** allows you to:
+
+- Package Python scripts into Debian `.deb` packages.
+- Automatically detect Python dependencies.
+- Include dependencies inside a standalone binary (via Nuitka) or leave them managed by the system.
+- Create optional `install.sh` setup scripts.
+- Generate `tar.gz` archives containing the `.deb` and setup script.
+- Add man pages for easy command-line help.
+
+**Key advantage:** Simplifies distribution of Python scripts on Debian-based systems, eliminating manual packaging steps while ensuring portability and dependency management.
 
 ---
 
 ## Installation
 
-Before using `py2debv2`, install required dependencies:
+### Using Prebuilt DEB Package
 
-```bash
-sudo apt update
-sudo apt install python3 python3-venv python3-pip dpkg-dev
-pipx install nuitka
-```
-
-Clone this repository:
+1. Clone the repository:
 
 ```bash
 git clone https://github.com/avitwil/py2debv2.git
 cd py2debv2
-```
+````
 
-Make the script executable:
+2. Install the package:
 
 ```bash
-chmod +x py2debv2.py
+sudo dpkg -i py2debv2.deb
+```
+
+3. Run the command directly:
+
+```bash
+py2debv2 --help
+```
+
+### Using Setup Script
+
+```bash
+sudo ./install.sh
+```
+
+This will install the command globally under `/usr/local/bin/`.
+
+### From Source (Optional)
+
+If you prefer, you can run the Python script directly:
+
+```bash
+python3 py2debv2.py <python_file> --command <cmd_name> -cn "Avi Twil" -email "unknown@example.com"
+```
+
+> Recommended only for development or testing. Use the prebuilt package for deployment.
+
+---
+
+## Usage Examples
+
+### Basic Debian Package
+
+```bash
+py2debv2 my_script.py --command mytool -cn "Avi Twil" -email "avitwil@example.com"
+```
+
+### Create Setup Script and TAR.GZ Archive
+
+```bash
+py2debv2 my_script.py --command mytool --setup --tar-gz -cn "Avi Twil"
+```
+
+### Compile as Standalone Binary (with dependencies included)
+
+```bash
+py2debv2 my_script.py --command mytool --bin --setup
+```
+
+### Add a Man Page
+
+```bash
+py2debv2 my_script.py --command mytool -man my_tool.1
 ```
 
 ---
 
-## Usage
+## Advantages Over Similar Tools
 
-### Basic DEB Packaging
+| Feature                        | Py2Debv2 | dh-virtualenv | PyInstaller | py2deb |
+| ------------------------------ | -------- | ------------- | ----------- | ------ |
+| Debian `.deb` Packaging        | ✅        | ✅             | ❌           | ✅      |
+| Automatic dependency detection | ✅        | ❌             | ❌           | ✅      |
+| Standalone binary option       | ✅        | ❌             | ✅           | ❌      |
+| Optional `tar.gz` archive      | ✅        | ❌             | ❌           | ❌      |
+| Optional man page integration  | ✅        | ❌             | ❌           | ❌      |
+| Easy setup script generation   | ✅        | ❌             | ❌           | ❌      |
 
-```bash
-./py2debv2.py <python_file> --command <command_name> -cn "Creator Name" -email "creator@example.com"
-```
-
-Example:
-
-```bash
-./py2debv2.py myscript.py --command mytool -cn "Avi Twil" -email "avitwil@example.com"
-```
-
-### Create DEB with Setup Script
-
-```bash
-./py2debv2.py myscript.py --command mytool --setup
-```
-
-### Create tar.gz Archive
-
-```bash
-./py2debv2.py myscript.py --command mytool --setup --tar-gz
-```
-
-### Compile Standalone Binary (Includes Dependencies)
-
-```bash
-./py2debv2.py myscript.py --command mytool --bin
-```
-
-### Include a Man Page
-
-```bash
-./py2debv2.py myscript.py --command mytool -man mytool.1
-```
+**Summary:** Py2Debv2 combines packaging flexibility, dependency management, and standalone binary creation in one tool, offering a more complete solution than competitors for Debian-based systems.
 
 ---
 
-## Options
+## License
 
-| Option                    | Description                                             |
-| ------------------------- | ------------------------------------------------------- |
-| `<python_file>`           | Python script to package (required)                     |
-| `-cn <creator_name>`      | Name of the package creator (required)                  |
-| `-email <creator_email>`  | Email of the creator (required)                         |
-| `--command <name>`        | Command name for the installed executable (required)    |
-| `--sudo`                  | Add `sudo` to package dependencies                      |
-| `--setup`                 | Create a setup installation script                      |
-| `--tar-gz`                | Create a tar.gz archive containing DEB and setup script |
-| `--bin`                   | Compile as standalone binary with dependencies included |
-| `-man, --man_page <file>` | Add man page for the command                            |
-| `-h, --help`              | Show this help menu                                     |
-
----
-
-## Dependency Detection
-
-`py2debv2` automatically parses your Python script for import statements and detects external libraries such as:
-
-```
-colorama, pyfiglet, tqdm, requests, numpy, pandas, matplotlib, flask, django, Pillow, etc.
-```
-
-For standard Python modules, it ignores them automatically.
-
----
-
-## Output Files
-
-* `/usr/local/bin/<command_name>` → Installed Python script or binary.
-* `/usr/share/man/man1/<command_name>.1.gz` → Installed man page (if provided).
-* `install.sh` → Optional setup script for DEB installation.
-* `<command_name>.deb` → Generated Debian package.
-* `<command_name>.tar.gz` → Optional archive containing DEB and setup script.
+Py2Debv2 is released under the **MIT License**. See the `LICENSE` file for details.
 
 ---
 
 ## Author
 
 **Avi Twil**
-Twil Industries
+**Twil Industries**
 
----
-
-## License
-
-This project is released under the MIT License.
 
