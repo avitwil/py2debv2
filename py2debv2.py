@@ -78,6 +78,13 @@ def create_deb_structure(app_name):
     return build_dir
 
 def write_control_file(build_dir, app_name, author, email, sudo_required, deps):
+    # Reject newlines in user-supplied fields so they can't inject extra
+    # Debian control-file stanzas/headers via -cn/-email.
+    if '\n' in author or '\r' in author:
+        raise ValueError("Invalid creator name: newline characters are not allowed")
+    if '\n' in email or '\r' in email:
+        raise ValueError("Invalid creator email: newline characters are not allowed")
+
     all_deps = []
     if sudo_required:
         all_deps.append("sudo")
@@ -221,7 +228,11 @@ def main():
 
     # Create DEB package
     build_dir = create_deb_structure(args.command)
-    write_control_file(build_dir, args.command, args.creator_name, args.creator_email, args.sudo, deps)
+    try:
+        write_control_file(build_dir, args.command, args.creator_name, args.creator_email, args.sudo, deps)
+    except ValueError as e:
+        print(Fore.RED + f"Error: {e}")
+        sys.exit(1)
     copy_python_file(build_dir, py_file, args.command)
     if args.man_page:
         copy_man_page(build_dir, args.man_page, args.command)
