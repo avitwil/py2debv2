@@ -249,6 +249,10 @@ def main():
 
     # Handle standalone compilation
     if args.bin:
+        print(Fore.YELLOW + "Warning: --bin compiles a standalone Nuitka build, but that build is "
+              "NOT YET wired into the generated .deb - the package will still only contain the "
+              "plain Python script. The compiled standalone output is left under "
+              f"'build_nuitka/{args.command}.dist' for you to package/copy in manually.\n")
         try:
             build_in_virtualenv(py_file, args.command, deps)
         except subprocess.CalledProcessError:
