@@ -69,7 +69,29 @@ def parse_python_dependencies(py_file):
                         deps.add(mod)
     return sorted(deps)
 
+_COMMAND_NAME_RE = re.compile(r'^[A-Za-z0-9_.-]+$')
+
+def validate_command_name(command):
+    """
+    args.command is used to build the build_dir/output filenames, and
+    build_dir is later passed to shutil.rmtree(). Reject anything that
+    could escape the current directory (path separators or '..') or
+    otherwise isn't a plausible package/command name.
+    """
+    if (
+        not command
+        or not _COMMAND_NAME_RE.fullmatch(command)
+        or "/" in command
+        or "\\" in command
+        or ".." in command
+    ):
+        raise ValueError(
+            f"Invalid --command value {command!r}: only letters, digits, '_', '-', and '.' "
+            "are allowed (no '/', '\\', or '..')."
+        )
+
 def create_deb_structure(app_name):
+    validate_command_name(app_name)
     build_dir = Path(f"{app_name}_deb_build")
     if build_dir.exists():
         shutil.rmtree(build_dir)
@@ -207,6 +229,13 @@ def main():
         help_menu()
         sys.exit(1)
 
+    try:
+        validate_command_name(args.command)
+    except ValueError as e:
+        print(Fore.RED + f"Error: {e}\n")
+        help_menu()
+        sys.exit(1)
+
     if not args.creator_name:
         args.creator_name = "Unknown Creator"
         print(Fore.YELLOW + f"Warning: no creator name provided, using default: {Fore.CYAN}{args.creator_name}")
@@ -227,8 +256,8 @@ def main():
             sys.exit(1)
 
     # Create DEB package
-    build_dir = create_deb_structure(args.command)
     try:
+        build_dir = create_deb_structure(args.command)
         write_control_file(build_dir, args.command, args.creator_name, args.creator_email, args.sudo, deps)
     except ValueError as e:
         print(Fore.RED + f"Error: {e}")
