@@ -9,6 +9,9 @@
 
 - Automatically detect Python dependencies and map them to Debian packages.
 - Optional standalone binary compilation using Nuitka (`--bin` flag).
+  ⚠️ Currently `--bin` only compiles the standalone Nuitka build and leaves it
+  under `build_nuitka/<command>.dist/` - it is **not yet copied into the
+  generated `.deb`**, which will still only contain the plain Python script.
 - Create setup installation scripts (`--setup` flag).
 - Man page integration (`--man` flag).
 - Bundle DEB and setup scripts into a `tar.gz` archive (`--tar-gz` flag).
@@ -38,6 +41,16 @@ sudo ./install.sh
 ```
 
 After installation, the `py2debv2` command is available system-wide.
+
+### Running from source
+
+```bash
+pip install -r requirements.txt
+python3 py2debv2.py myscript.py --command myscript -cn "Your Name" -email "you@example.com"
+```
+
+`requirements.txt` covers everything needed except `--bin`, which additionally
+requires `nuitka` (see the comment in `requirements.txt`).
 
 ---
 
